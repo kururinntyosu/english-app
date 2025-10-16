@@ -1,0 +1,287 @@
+/* ----------------------------
+   全体のフォントと中央揃え
+---------------------------- */
+body {
+    margin-left: 150px; /* 左側に操作パネルがある場合の余白 */
+    font-family: sans-serif; /* フォントをサンセリフ体に */
+    text-align: center;       /* 全体中央揃え */
+    margin-top: 50px;         /* 上部余白 */
+    background-color: #fff;   /*  背景を白固定（環境依存回避） */
+    color: #000;              /*  文字色を明示して可読性向上 */
+}
+
+/* ----------------------------
+   単語と意味の表示ボックス
+---------------------------- */
+#word-box {
+    width: 90%;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 2px solid #000;
+    text-align: center;
+    border-radius: 8px; /*  角を少し丸めて視認性を改善 */
+    background-color: #fff; /*  背景白で一貫性確保 */
+}
+
+/* ----------------------------
+   「意味を表示」ボタンの親要素
+---------------------------- */
+#showMeaningArea {
+    margin-top: 15px;
+    text-align: center;
+    width: 100%;
+}
+
+/* ----------------------------
+   「意味を表示」ボタン
+---------------------------- */
+#showMeaningBtn {
+    display: inline-block;
+    padding: 8px 16px;
+    font-size: 16px;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s; /*  ボタン押下感を追加 */
+}
+
+#showMeaningBtn:hover {
+    background-color: #45a049;
+    transform: scale(1.03); /*  軽い拡大アニメーション */
+}
+
+/* ----------------------------
+   テーブルをスクロール可能にするラッパー
+---------------------------- */
+#tableWrapper {
+    width: 80%;
+    max-width: 600px;
+    margin: 30px auto 0;
+    overflow-x: auto;
+}
+
+/* ----------------------------
+   テーブル本体
+---------------------------- */
+#wordTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+/* ----------------------------
+   テーブルのヘッダーとセル共通スタイル
+---------------------------- */
+#wordTable th,
+#wordTable td {
+    padding: 10px;
+    border: 1px solid #000;
+    text-align: left;
+}
+
+/* テーブルヘッダーの背景色 */
+#wordTable th {
+    background-color: #f0f0f0;
+    position: sticky; /*  スクロール時ヘッダー固定 */
+    top: 0;
+    z-index: 10;
+}
+
+/* ----------------------------
+   単語追加フォーム
+---------------------------- */
+#addWordBox {
+    margin: 20px auto;
+    padding: 10px;
+}
+
+/* 入力フィールド */
+#addWordBox input {
+    padding: 8px;
+    margin: 5px;
+    font-size: 14px;
+    width: 150px;
+    border: 1px solid #ccc; /*  境界線を明示 */
+    border-radius: 5px;
+}
+
+/* 追加ボタン */
+#addWordBox button {
+    padding: 8px 16px;
+    font-size: 14px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#addWordBox button:hover {
+    background-color: #0b7dda;
+}
+
+/* ----------------------------
+   音声アイコン
+---------------------------- */
+.speak-icon {
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    margin-right: 8px;
+    vertical-align: middle;
+    opacity: 0.8; /*  若干透明で控えめに */
+    transition: opacity 0.2s;
+}
+
+.speak-icon:hover {
+    opacity: 1;
+}
+
+/* ----------------------------
+   現在のモード表示ボックス
+---------------------------- */
+#modeDisplay {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 1000;
+}
+
+/* ----------------------------
+   操作ボタン全体（画面左に固定）
+---------------------------- */
+#controls {
+    position: fixed;
+    top: 60px;
+    left: 10px;
+    background: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 999;
+    border-radius: 8px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+}
+
+/* 操作ボタンやラベルを縦に並べる */
+#controls button,
+#controls span,
+#controls label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+/* ----------------------------
+   チェックされた（覚えていない）単語の行に色を付ける
+---------------------------- */
+.unlearned {
+    background-color: #ffeaea;
+}
+
+/* チェックボックスONの場合も同色を適用 */
+#wordTable tbody tr input[type="checkbox"]:checked {
+    background-color: #ffeaea;
+}
+
+/* ----------------------------
+   非表示用クラス
+---------------------------- */
+.hidden {
+    display: none !important;
+}
+
+/* ----------------------------
+   クイズモード用スタイル
+---------------------------- */
+.quiz-card {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.quiz-word {
+    font-size: 2em;
+    margin: 10px 0;
+}
+
+.quiz-btn {
+    margin: 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border-radius: 8px;
+    border: 1px solid #aaa;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.quiz-btn:hover {
+    background-color: #f0f0f0;
+    transform: scale(1.02); /*  押した感追加 */
+}
+
+.quiz-result {
+    margin-top: 10px;
+    font-weight: bold;
+    min-height: 1.5em;
+}
+
+.exit-btn {
+    margin-top: 15px;
+    background: #ccc;
+    padding: 8px 15px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.exit-btn:hover {
+    background-color: #bbb;
+}
+
+/* ----------------------------
+   設定パネル
+---------------------------- */
+#settingsPanel {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    transition: all 0.3s ease; /*  開閉時にアニメーション */
+}
+
+#settingsToggle {
+    margin-bottom: 10px;
+    background-color: #eee;
+    border: 1px solid #aaa;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#settingsToggle:hover {
+    background-color: #ddd;
+}
+/* テストモードの中断ボタンのスタイル */
+.stop-btn {
+  background-color: #ccc;
+  padding: 8px 15px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  margin-top: 5px;
+  transition: background-color 0.2s;
+}
+
+.stop-btn:hover {
+  background-color: #bbb;
+}

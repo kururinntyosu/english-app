@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8"> <!-- 文字コード設定（日本語対応） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面対応 -->
+  <title>英単語アプリ</title>
+
+  <!-- 外部CSS -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- defer属性でHTML解析後にスクリプト実行 -->
+  <script src="settings.js" defer></script>
+  <script src="script.js" defer></script>
+  <script src="quiz.js" defer></script> <!-- 4択クイズ機能 -->
+</head>
+
+<body>
+  <!-- メインタイトル -->
+  <h1>英単語アプリ</h1>
+
+  <!-- 単語追加フォーム -->
+  <!--対象: テストモード/クイズモードで非表示にする -->
+  <div id="addWordBox">
+    <input type="text" id="newWord" placeholder="英単語" inputmode="latin" lang="en">
+    <input type="text" id="newMeaning" placeholder="意味" inputmode="kana" lang="ja">
+    <button onclick="addWord()">追加</button>
+  </div>
+
+  <!-- 設定ボタン -->
+  <button id="settingsToggle">⚙ 設定</button>
+
+  <!-- 設定パネル（初期は非表示） -->
+  <div id="settingsPanel" class="hidden">
+    <h3>設定</h3>
+    <label>声の選択:</label>
+    <select id="voiceSelect"></select>
+    <br>
+    <label>音量:</label>
+    <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="1">
+    <br>
+    <label>速度:</label>
+    <input type="range" id="rateRange" min="0.5" max="2" step="0.1" value="1">
+  </div>
+
+  <!-- 操作ボタン -->
+  <div id="controls">
+    <button onclick="nextWord()">次の単語</button>
+    <button onclick="speakWord()">発音する</button>
+    <button onclick="toggleMode()">単語をランダム表示にする</button>
+    <button onclick="toggleShowUnlearnedOnly()">覚えていない単語のみ表示切替</button>
+    <button onclick="toggleTestMode()">テストモード切替</button>
+    <button onclick="speakAllWords()">全単語を読み上げ</button>
+    <button id="startQuizBtn">4択クイズモード</button>
+
+    <!-- 現在モードの表示 -->
+    <span id="modeDisplay">現在のモード:順番</span>
+  </div>
+
+  <!-- 単語一覧テーブル -->
+  <div id="tableWrapper">
+    <h2 id="wordListTitle">単語一覧</h2>
+    <div id="wordListArea">
+      <table id="wordTable" border="1">
+        <thead>
+          <tr>
+            <th>覚えていない</th>
+            <th>単語</th>
+            <th>意味</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- JSで動的に追加 -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4択クイズエリア（初期は非表示） -->
+  <div id="quizArea" style="display:none; text-align:center; margin-top:30px;"></div>
+
+  <!-- テストモード表示エリア（初期は非表示） -->
+  <div id="testArea" style="text-align:center; margin-top:50px; display:none;"></div>
+
+  <!-- モードごとに単語追加フォームを制御 -->
+  <script>
+    /**
+     *
+     * 現在のモードに応じて単語追加フォーム(#addWordBox)の表示を切り替える。
+     */
+    function updateAddWordBoxVisibility() {
+      const addWordBox = document.getElementById("addWordBox");
+      const testArea = document.getElementById("testArea");
+      const quizArea = document.getElementById("quizArea");
+
+      // テストモードまたはクイズモード中なら非表示
+      if (testArea.style.display !== "none" || quizArea.style.display !== "none") {
+        addWordBox.style.display = "none"; // 非表示
+      } else {
+        addWordBox.style.display = "block"; // 表示
+      }
+    }
+
+    // toggleTestModeをラップして、処理後にフォームを更新
+    const originalToggleTestMode = window.toggleTestMode;
+    window.toggleTestMode = function() {
+      // 元の関数を実行（あれば）
+      if (typeof originalToggleTestMode === "function") {
+        originalToggleTestMode();
+      }
+
+      // 少し遅延してDOM反映後にチェック
+      setTimeout(updateAddWordBoxVisibility, 50);
+    };
+
+    // 4択クイズモード開始ボタンにフック
+    document.addEventListener("DOMContentLoaded", () => {
+      const quizButton = document.getElementById("startQuizBtn");
+      if (quizButton) {
+        quizButton.addEventListener("click", () => {
+          // クイズモードが始まった後にフォームを非表示化
+          setTimeout(updateAddWordBoxVisibility, 100);
+        });
+      }
+
+      // 初期ロード時に一度チェック
+      updateAddWordBoxVisibility();
+
+      // 定期的にモードの変化を監視して確実に反映（保険）
+      setInterval(updateAddWordBoxVisibility, 300);
+    });
+  </script>
+
+  <!-- 
+    ✅ 以前はここにDOMイベント登録スクリプトがありましたが、
+    quiz.js側に同等処理が実装済みのため削除しました。
+    二重登録を防ぐ目的です。
+  -->
+
+</body>
+</html>
