@@ -1,141 +1,285 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8"> <!-- 文字コード設定（日本語対応） -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- スマホ画面対応 -->
-  <title>英単語アプリ</title>
-
-  <!-- 外部CSS -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>勉強記録アプリ</title>
+  <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="style.css">
-
-  <!-- defer属性でHTML解析後にスクリプト実行 -->
-  <script src="settings.js" defer></script>
-  <script src="script.js" defer></script>
-  <script src="quiz.js" defer></script> <!-- 4択クイズ機能 -->
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></link>
 </head>
-
 <body>
-  <!-- メインタイトル -->
-  <h1>英単語アプリ</h1>
 
-  <!-- 単語追加フォーム -->
-  <!--対象: テストモード/クイズモードで非表示にする -->
-  <div id="addWordBox">
-    <input type="text" id="newWord" placeholder="英単語" inputmode="latin" lang="en">
-    <input type="text" id="newMeaning" placeholder="意味" inputmode="kana" lang="ja">
-    <button onclick="addWord()">追加</button>
+  <div class="app-container">
+    <!-- ヘッダー -->
+    <header class="app-header">
+      <h1 id="header-title">記録</h1>
+      <button id="btn-select-mode" class="header-action-btn">選択</button>
+    </header>
+
+    <!-- メイン表示領域 -->
+    <main class="app-content">
+      
+      <!-- 1. 記録（本棚）画面 -->
+      <section id="view-record" class="view-page active">
+        <div class="record-top-actions">
+          <button class="btn btn-secondary btn-sm" id="btn-open-manual-log">
+            <i class="fa-solid fa-pen-to-square"></i> 手動で記録を追加
+          </button>
+        </div>
+        <div id="shelf-container" class="shelf-container">
+          <!-- JSでカテゴリごとの本棚を動的に生成します -->
+        </div>
+        <!-- 右下の追加ボタン (FAB) -->
+        <button class="fab" id="btn-open-add-modal">
+          <i class="fa-solid fa-plus"></i>
+        </button>
+      </section>
+
+      <!-- 2. レポート 画面 -->
+      <section id="view-report" class="view-page">
+        <!-- 上部サマリー（今日/今月/総計） -->
+        <div class="summary-table">
+          <div class="summary-cell">
+            <span class="label">今日</span>
+            <span class="val" id="time-today">0分</span>
+          </div>
+          <div class="summary-cell">
+            <span class="label">今月</span>
+            <span class="val" id="time-month">0時間</span>
+          </div>
+          <div class="summary-cell">
+            <span class="label">総計</span>
+            <span class="val" id="time-total">0時間</span>
+          </div>
+        </div>
+
+        <!-- 今週一番学習したタイトル -->
+        <div class="card highlight-card">
+          <div class="card-icon"><i class="fa-solid fa-crown"></i></div>
+          <div class="card-text">
+            <div class="card-label">今週一番勉強した教材</div>
+            <div class="card-title" id="top-book-title">まだ記録がありません</div>
+          </div>
+        </div>
+
+        <!-- 学習時間 (棒グラフ) -->
+        <div class="card">
+          <div class="card-header">
+            <h3>学習時間</h3>
+            <select id="bar-period-select">
+              <option value="day">曜日ごと (直近7日)</option>
+              <option value="week">週ごと</option>
+              <option value="month">月ごと</option>
+              <option value="year">年ごと</option>
+            </select>
+          </div>
+          <div class="chart-container">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+
+        <!-- 時間配分 (円グラフ) -->
+        <div class="card">
+          <h3>時間配分 (教材)</h3>
+          <div class="chart-container">
+            <canvas id="pieChart"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. マイページ 画面 -->
+      <section id="view-mypage" class="view-page">
+        <div class="profile-card">
+          <i class="fa-solid fa-circle-user profile-avatar"></i>
+          <h2>ユーザーページ</h2>
+          <p>今日もコツコツ学習を続けましょう！</p>
+        </div>
+        
+        <!-- 設定カード: テーマ -->
+        <div class="card setting-card">
+          <h3>テーマ設定</h3>
+          <div class="setting-item">
+            <span>端末のテーマ設定に合わせる</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="theme-system-toggle" checked>
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="setting-item" id="manual-dark-group" style="display: none;">
+            <span>ダークモード</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="dark-mode-toggle">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 設定カード: 通知設定 -->
+        <div class="card setting-card">
+          <h3>通知設定</h3>
+          <div class="setting-item">
+            <span>学習リマインダー通知</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="notification-toggle">
+              <span class="slider round"></span>
+            </label>
+          </div>
+          <div class="setting-item" id="notification-time-group" style="margin-top: 14px; display: none;">
+            <span>通知時間</span>
+            <input type="time" id="notification-time-input" class="form-time-input" value="20:00">
+          </div>
+          <!-- 記録の催促を受け取る設定を追加 -->
+          <div class="setting-item" style="margin-top: 14px;">
+            <span>記録の催促を受け取る</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="reminder-toggle">
+              <span class="slider round"></span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- 削除固定アクションバー (選択モード時に表示) -->
+    <div id="delete-bar" class="delete-bar hidden">
+      <button id="btn-delete-selected" class="btn btn-danger btn-block" disabled>
+        削除 <span id="delete-count">(0)</span>
+      </button>
+    </div>
+
+    <!-- 下部固定ナビゲーションバー -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-target="view-record">
+        <i class="fa-solid fa-book-open"></i>
+        <span>記録</span>
+      </button>
+      <button class="nav-item" data-target="view-report">
+        <i class="fa-solid fa-chart-pie"></i>
+        <span>レポート</span>
+      </button>
+      <button class="nav-item" data-target="view-mypage">
+        <i class="fa-solid fa-user"></i>
+        <span>マイページ</span>
+      </button>
+    </nav>
   </div>
 
-  <!-- 設定ボタン -->
-  <button id="settingsToggle">⚙ 設定</button>
-
-  <!-- 設定パネル（初期は非表示） -->
-  <div id="settingsPanel" class="hidden">
-    <h3>設定</h3>
-    <label>声の選択:</label>
-    <select id="voiceSelect"></select>
-    <br>
-    <label>音量:</label>
-    <input type="range" id="volumeRange" min="0" max="1" step="0.1" value="1">
-    <br>
-    <label>速度:</label>
-    <input type="range" id="rateRange" min="0.5" max="2" step="0.1" value="1">
-  </div>
-
-  <!-- 操作ボタン -->
-  <div id="controls">
-    <button onclick="nextWord()">次の単語</button>
-    <button onclick="speakWord()">発音する</button>
-    <button onclick="toggleMode()">単語をランダム表示にする</button>
-    <button onclick="toggleShowUnlearnedOnly()">覚えていない単語のみ表示切替</button>
-    <button onclick="toggleTestMode()">テストモード切替</button>
-    <button onclick="speakAllWords()">全単語を読み上げ</button>
-    <button id="startQuizBtn">4択クイズモード</button>
-
-    <!-- 現在モードの表示 -->
-    <span id="modeDisplay">現在のモード:順番</span>
-  </div>
-
-  <!-- 単語一覧テーブル -->
-  <div id="tableWrapper">
-    <h2 id="wordListTitle">単語一覧</h2>
-    <div id="wordListArea">
-      <table id="wordTable" border="1">
-        <thead>
-          <tr>
-            <th>覚えていない</th>
-            <th>単語</th>
-            <th>意味</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- JSで動的に追加 -->
-        </tbody>
-      </table>
+  <!-- 本追加モーダル -->
+  <div class="modal-overlay" id="modal-add-book">
+    <div class="modal-card">
+      <h3>新しい教材の登録</h3>
+      <div class="input-group">
+        <label>タイトル</label>
+        <input type="text" id="input-book-title" placeholder="例: 鉄緑会東大数学問題集">
+      </div>
+      <div class="input-group">
+        <label>カテゴリー</label>
+        <input type="text" id="input-book-category" placeholder="例: 数学、英語、入試">
+      </div>
+      <div class="input-group">
+        <label>カバーの色</label>
+        <div class="color-picker-group" id="add-color-picker">
+          <span class="color-dot active" data-color="#4a90e2" style="background:#4a90e2;"></span>
+          <span class="color-dot" data-color="#34c759" style="background:#34c759;"></span>
+          <span class="color-dot" data-color="#ff9500" style="background:#ff9500;"></span>
+          <span class="color-dot" data-color="#ff3b30" style="background:#ff3b30;"></span>
+          <span class="color-dot" data-color="#af52de" style="background:#af52de;"></span>
+          <span class="color-dot" data-color="#5856d6" style="background:#5856d6;"></span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-close-add-modal">キャンセル</button>
+        <button class="btn btn-primary" id="btn-save-book">保存</button>
+      </div>
     </div>
   </div>
 
-  <!-- 4択クイズエリア（初期は非表示） -->
-  <div id="quizArea" style="display:none; text-align:center; margin-top:30px;"></div>
+  <!-- 教材編集モーダル (長押しで表示) -->
+  <div class="modal-overlay" id="modal-edit-book">
+    <div class="modal-card">
+      <h3>教材の編集</h3>
+      <input type="hidden" id="edit-book-id">
+      <div class="input-group">
+        <label>タイトル</label>
+        <input type="text" id="edit-book-title">
+      </div>
+      <div class="input-group">
+        <label>カテゴリー</label>
+        <input type="text" id="edit-book-category">
+      </div>
+      <div class="input-group">
+        <label>カバーの色</label>
+        <div class="color-picker-group" id="edit-color-picker">
+          <span class="color-dot" data-color="#4a90e2" style="background:#4a90e2;"></span>
+          <span class="color-dot" data-color="#34c759" style="background:#34c759;"></span>
+          <span class="color-dot" data-color="#ff9500" style="background:#ff9500;"></span>
+          <span class="color-dot" data-color="#ff3b30" style="background:#ff3b30;"></span>
+          <span class="color-dot" data-color="#af52de" style="background:#af52de;"></span>
+          <span class="color-dot" data-color="#5856d6" style="background:#5856d6;"></span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-close-edit-modal">キャンセル</button>
+        <button class="btn btn-primary" id="btn-update-book">更新</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- テストモード表示エリア（初期は非表示） -->
-  <div id="testArea" style="text-align:center; margin-top:50px; display:none;"></div>
+  <!-- 手動記録追加モーダル -->
+  <div class="modal-overlay" id="modal-manual-log">
+    <div class="modal-card">
+      <h3>学習時間の手動入力</h3>
+      <div class="input-group">
+        <label>教材を選択</label>
+        <select id="manual-book-select" class="form-select"></select>
+      </div>
+      <div class="input-group">
+        <label>学習時間</label>
+        <div class="time-input-flex">
+          <input type="number" id="manual-hours" min="0" value="0" placeholder="0"> 時間
+          <input type="number" id="manual-minutes" min="0" max="59" value="30" placeholder="30"> 分
+        </div>
+      </div>
+      <div class="input-group">
+        <label>日付</label>
+        <input type="date" id="manual-date" class="form-date-input">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btn-close-manual-modal">キャンセル</button>
+        <button class="btn btn-primary" id="btn-save-manual-log">追加</button>
+      </div>
+    </div>
+  </div>
 
-  <!-- モードごとに単語追加フォームを制御 -->
-  <script>
-    /**
-     *
-     * 現在のモードに応じて単語追加フォーム(#addWordBox)の表示を切り替える。
-     */
-    function updateAddWordBoxVisibility() {
-      const addWordBox = document.getElementById("addWordBox");
-      const testArea = document.getElementById("testArea");
-      const quizArea = document.getElementById("quizArea");
+  <!-- ストップウォッチ計測モーダル -->
+  <div class="modal-overlay" id="modal-timer">
+    <div class="modal-card timer-card">
+      <button class="btn-modal-close" id="btn-close-timer">×</button>
+      <h3 id="timer-book-title">教材名</h3>
+      <p class="timer-category" id="timer-book-category">カテゴリー</p>
+      
+      <!-- ストップウォッチ表示 -->
+      <div class="timer-display" id="timer-display">00:00:00</div>
 
-      // テストモードまたはクイズモード中なら非表示
-      if (testArea.style.display !== "none" || quizArea.style.display !== "none") {
-        addWordBox.style.display = "none"; // 非表示
-      } else {
-        addWordBox.style.display = "block"; // 表示
-      }
-    }
+      <!-- 操作ボタン -->
+      <div class="timer-controls">
+        <button class="btn btn-success" id="btn-timer-start">開始</button>
+        <button class="btn btn-danger hidden" id="btn-timer-stop">停止</button>
+        <button class="btn btn-secondary hidden" id="btn-timer-reset">リセット</button>
+      </div>
 
-    // toggleTestModeをラップして、処理後にフォームを更新
-    const originalToggleTestMode = window.toggleTestMode;
-    window.toggleTestMode = function() {
-      // 元の関数を実行（あれば）
-      if (typeof originalToggleTestMode === "function") {
-        originalToggleTestMode();
-      }
+      <!-- 停止時に表示される終了ボタン -->
+      <div class="timer-finish-area hidden" id="timer-finish-area">
+        <button class="btn btn-primary btn-block" id="btn-timer-finish">終了してレポートに記録</button>
+      </div>
+    </div>
+  </div>
 
-      // 少し遅延してDOM反映後にチェック
-      setTimeout(updateAddWordBoxVisibility, 50);
-    };
-
-    // 4択クイズモード開始ボタンにフック
-    document.addEventListener("DOMContentLoaded", () => {
-      const quizButton = document.getElementById("startQuizBtn");
-      if (quizButton) {
-        quizButton.addEventListener("click", () => {
-          // クイズモードが始まった後にフォームを非表示化
-          setTimeout(updateAddWordBoxVisibility, 100);
-        });
-      }
-
-      // 初期ロード時に一度チェック
-      updateAddWordBoxVisibility();
-
-      // 定期的にモードの変化を監視して確実に反映（保険）
-      setInterval(updateAddWordBoxVisibility, 300);
-    });
-  </script>
-
-  <!-- 
-    ✅ 以前はここにDOMイベント登録スクリプトがありましたが、
-    quiz.js側に同等処理が実装済みのため削除しました。
-    二重登録を防ぐ目的です。
-  -->
-
+  <script src="kiroku.js"></script>
 </body>
 </html>
